@@ -4,7 +4,25 @@
   const cartao = document.getElementById('cartaoResposta');
   const perguntaTexto = document.getElementById('perguntaTexto');
   const respostaTexto = document.getElementById('respostaTexto');
-  const nomeSocio = document.getElementById('nomeSocio');
+  const avatar = document.getElementById('avatar');
+  const tituloTopo = document.getElementById('tituloTopo');
+  const gridEmpresas = document.getElementById('gridEmpresas');
+
+  // Tema (claro/escuro/sistema) — persiste por navegador, não sincroniza entre dispositivos.
+  const botoesTema = document.querySelectorAll('.botao-tema');
+  function aplicarTema(tema) {
+    if (tema === 'dark' || tema === 'light') {
+      document.documentElement.setAttribute('data-theme', tema);
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    botoesTema.forEach((b) => b.classList.toggle('ativo', b.dataset.tema === tema));
+    localStorage.setItem('tema', tema);
+  }
+  botoesTema.forEach((b) => b.addEventListener('click', () => aplicarTema(b.dataset.tema)));
+  aplicarTema(localStorage.getItem('tema') || 'auto');
+
+  const ICONE_PREDIO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1"/></svg>';
 
   // O token vem na URL (/s/<token>) só na primeira visita; depois fica salvo local
   // pra funcionar como PWA instalado (sem repetir o link toda vez).
@@ -31,7 +49,18 @@
       const r = await fetch('/api/me', { headers: { Authorization: `Bearer ${token}` } });
       if (!r.ok) throw new Error('sessao invalida');
       const dados = await r.json();
-      nomeSocio.textContent = dados.nome || '';
+
+      const nome = dados.nome || '';
+      avatar.textContent = nome.charAt(0).toUpperCase() || '?';
+      tituloTopo.innerHTML = `Olá, <b>${nome}</b>`;
+
+      gridEmpresas.innerHTML = (dados.empresas || [])
+        .map((e, i) => `
+          <div class="card-empresa">
+            <div class="icone-selo cor-${i % 4}">${ICONE_PREDIO}</div>
+            <p class="nome-empresa">${e.empresa_nome}</p>
+          </div>`)
+        .join('');
     } catch {
       status.textContent = 'Link expirado ou inválido. Peça um novo link.';
       botao.disabled = true;

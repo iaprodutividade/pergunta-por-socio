@@ -96,18 +96,24 @@ app.get('/admin/socios', async (req, res) => {
     const socios = await db.todosOsSocios();
     const base = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
 
-    const linhas = socios
-      .map((s) => {
+    const CORES = ['cor-0', 'cor-1', 'cor-2', 'cor-3'];
+    const ICONE_PREDIO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1"/></svg>';
+
+    const cards = socios
+      .map((s, i) => {
         const link = `${base}/s/${token.signStavel({ pessoaId: s.pessoaId, pessoaNome: s.pessoaNome })}`;
+        const badges = s.empresas
+          .map((nome, j) => `<span class="icone-selo ${CORES[j % 4]}" style="width:auto;height:auto;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;margin:0 6px 6px 0">${nome}</span>`)
+          .join('');
         return `
-          <tr>
-            <td>${s.pessoaNome}</td>
-            <td>${s.empresas.join(', ')}</td>
-            <td class="link-cell">
-              <code id="link-${s.pessoaId}">${link}</code>
-              <button onclick="copiar('link-${s.pessoaId}', this)">Copiar</button>
-            </td>
-          </tr>`;
+          <div class="card-empresa" style="grid-column:1 / -1">
+            <p class="nome-empresa" style="margin-bottom:10px">${s.pessoaNome}</p>
+            <div style="display:flex;flex-wrap:wrap;margin-bottom:12px">${badges}</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <code id="link-${s.pessoaId}" style="flex:1;background:var(--card-grad-1);border:1px solid var(--card-borda);border-radius:8px;padding:6px 10px;font-size:11px;word-break:break-all;color:var(--texto-sec)">${link}</code>
+              <button class="botao-mic" style="padding:8px 14px;flex-shrink:0" onclick="copiar('link-${s.pessoaId}', this)">Copiar</button>
+            </div>
+          </div>`;
       })
       .join('');
 
@@ -115,34 +121,32 @@ app.get('/admin/socios', async (req, res) => {
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Links dos sócios</title>
-<style>
-  body { background:#0b1220; color:#e8ecf5; font-family:-apple-system,Segoe UI,Roboto,sans-serif; padding:24px; }
-  h1 { font-size:18px; color:#93a0bd; font-weight:600; }
-  table { width:100%; border-collapse:collapse; margin-top:16px; }
-  th, td { text-align:left; padding:10px 12px; border-bottom:1px solid #24304d; vertical-align:top; }
-  th { color:#93a0bd; font-size:13px; font-weight:600; }
-  code { background:#141d33; border:1px solid #24304d; border-radius:6px; padding:4px 8px; font-size:12px; word-break:break-all; }
-  button { margin-left:8px; background:#3b82f6; color:white; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; font-size:12px; }
-  button.copiado { background:#22c55e; }
-  .link-cell { max-width:420px; }
-  .nota { color:#93a0bd; font-size:13px; margin-top:20px; }
-</style>
+<link rel="stylesheet" href="/style.css" />
+<style>.copiado { background: #22c55e !important; }</style>
 </head>
 <body>
-  <h1>Links de acesso — Pergunta por sócio</h1>
-  <table>
-    <thead><tr><th>Sócio</th><th>Empresas</th><th>Link (copiar e mandar por WhatsApp)</th></tr></thead>
-    <tbody>${linhas}</tbody>
-  </table>
-  <p class="nota">Links estáveis — não expiram até 2030. O Robson não tem link próprio (já tem acesso direto ao Mural Financeiro).</p>
+  <div class="tela">
+    <header class="topo">
+      <div class="avatar">A</div>
+      <div class="topo-textos">
+        <p class="rotulo-topo">Mural Financeiro</p>
+        <p class="titulo-topo">Links dos sócios</p>
+      </div>
+    </header>
+    <p class="secao-rotulo">Copiar e mandar por WhatsApp</p>
+    <div class="grid-empresas">${cards}</div>
+    <p class="status" style="margin-top:8px">Links estáveis, não expiram até 2030. Você não tem link próprio — já tem acesso direto ao Mural Financeiro.</p>
+  </div>
   <script>
     function copiar(id, btn) {
       const texto = document.getElementById(id).textContent;
       navigator.clipboard.writeText(texto).then(() => {
+        const original = btn.textContent;
         btn.textContent = 'Copiado!';
         btn.classList.add('copiado');
-        setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copiado'); }, 1500);
+        setTimeout(() => { btn.textContent = original; btn.classList.remove('copiado'); }, 1500);
       });
     }
   </script>
