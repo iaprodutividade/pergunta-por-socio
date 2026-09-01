@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
 const token = require('./token');
 const groq = require('./groq');
@@ -11,10 +12,19 @@ const db = require('./db');
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 
-// maxAge: 0 — cache já nasce "stale", navegador sempre revalida (via ETag) antes
-// de reusar app.js/style.css. Sem isso, quem já visitou fica preso numa versão
-// antiga depois de um deploy (foi o caso do tema quebrado pro Robson).
-app.use(express.static(path.join(__dirname, '..', 'public'), { maxAge: 0, etag: true, cacheControl: true }));
+// A Cloudflare (proxy na frente do site) cacheia .js/.css na borda por horas,
+// ignorando o Cache-Control que o Express manda — então cache-busting por
+// header não adianta. A saída é o endereço mudar a cada deploy: injeta
+// ?v=<timestamp do boot> no HTML, assim o navegador (e a Cloudflare) sempre
+// buscam de novo depois de publicar algo. Foi o que deixou o toggle de tema
+// "quebrado" pro Robson — ele estava com o app.js de antes do redesenho.
+const ASSET_VERSION = Date.now();
+const INDEX_HTML = fs
+  .readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8')
+  .replace('/style.css', `/style.css?v=${ASSET_VERSION}`)
+  .replace('/app.js', `/app.js?v=${ASSET_VERSION}`);
+
+app.use(express.static(path.join(__dirname, '..', 'public'), { index: false }));
 app.use(express.json());
 
 // Middleware: valida o token do link mágico (header Authorization: Bearer <token>).
@@ -27,9 +37,10 @@ function autenticar(req, res, next) {
   next();
 }
 
-// Página do sócio: serve o app estático, o token fica só no client (localStorage), nunca em log de servidor.
-app.get('/s/:token', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+// Página do sócio: serve o HTML com a versão dos assets embutida (ver ASSET_VERSION
+// acima). O token fica só no client (localStorage), nunca em log de servidor.
+app.get(['/', '/s/:token'], (req, res) => {
+  res.type('html').send(INDEX_HTML);
 });
 
 app.get('/api/me', autenticar, async (req, res) => {
@@ -168,7 +179,7 @@ app.get('/admin/socios', async (req, res) => {
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="/style.css" />
+<link rel="stylesheet" href="/style.css?v=${ASSET_VERSION}" />
 <style>.copiado { background: #22c55e !important; }</style>
 <script>
   try {
