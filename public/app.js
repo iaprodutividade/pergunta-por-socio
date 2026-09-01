@@ -88,7 +88,7 @@
       respostaTexto.textContent = dados.resposta;
       cartao.classList.remove('oculto');
       falar(dados.resposta);
-      status.textContent = 'Toque no microfone pra perguntar de novo';
+      status.textContent = 'Toque no microfone e pergunte qualquer coisa sobre sua empresa';
     } catch (err) {
       status.textContent = err.message || 'Algo deu errado. Tente de novo.';
     } finally {
