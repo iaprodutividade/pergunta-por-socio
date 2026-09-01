@@ -63,7 +63,8 @@ async function responderComDados(pergunta, contexto) {
 Dados encontrados (já filtrados só pelo que este sócio pode ver):
 ${JSON.stringify(contexto, null, 2)}
 
-Responda em português, em 2 a 4 frases, tom direto e falado (a resposta vai ser lida em voz alta por síntese de voz).
+Responda em português, em 2 a 4 frases, tom direto e falado (a resposta vai ser lida em voz alta por síntese de voz e também mostrada como texto na tela).
+Todo valor em dinheiro DEVE aparecer no formato "R$ 1.234,56" (cifrão, milhar com ponto, centavos com vírgula) — nunca por extenso, nunca só o número solto.
 Se não houver lançamentos, diga isso claramente. Não invente números fora dos dados acima.
 Se houver algum aviso nos dados (ex: extrato desatualizado), mencione por último.`;
 
