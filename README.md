@@ -35,6 +35,17 @@ Gerar um link pra um sócio (depois do banco configurado):
 npm run link -- "Nome do sócio"
 ```
 
+## Página administrativa — links dos sócios
+
+`GET /admin/socios` — lista todos os sócios (puxados direto de `v_socio_empresas`) com um link
+estável (não expira até 2030) pronto pra copiar e mandar por WhatsApp. Protegida por basic auth no
+Caddy (só path `/admin/*`), usuário `robson`. Senha real só no Bitwarden/anotação pessoal do
+Robson, não reproduzida aqui.
+
+O Robson **não** tem link próprio — ele não aparece em `v_socio_empresas` porque já tem acesso
+direto e completo ao Mural Financeiro; esse app existe só pra dar aos sócios uma forma simples de
+consultar sem abrir o Mural inteiro.
+
 ## Pendências conhecidas (v1)
 
 - **Saldo ainda não é calculado.** O desenho original (ver handoff em `claude-sessions-log`)
@@ -47,6 +58,9 @@ npm run link -- "Nome do sócio"
   completo (empresas do sócio, isolamento, interpretação da pergunta, consulta filtrada) validado
   ponta a ponta com dados reais: Leandro vê Savecore + Macrovisor, Paulo Magalhães só vê Macrovisor,
   batendo com o exemplo do desenho original.
+- **Entrega do link** é manual (Robson copia de `/admin/socios` e manda por WhatsApp).
+- Sem testes automatizados ainda.
+
 ## Spec v2 — saldo com extrato + notificação por chat
 
 Confirmado com o Robson (2026-08-31): ele sobe o extrato bancário manualmente **uma vez por
@@ -72,8 +86,37 @@ provavelmente SQLite local nesta app, no mesmo padrão do Comunicação Direta.
 
 **Não implementado ainda** — construir depois do v1 (lançamentos) estar rodando de verdade.
 
-- **Entrega do link** é manual (Robson envia por WhatsApp/e-mail) — sem automação por enquanto.
-- Sem testes automatizados ainda.
+## Spec v3 — painel de analytics de acesso (pedido do Robson, 2026-09-01)
+
+Robson quer uma área administrativa completa (não só a lista simples de `/admin/socios`) com:
+
+- Resumo de login por sócio: quando entrou, quantas vezes.
+- Quanto tempo cada sócio navegou/usou o app por sessão.
+- O que cada sócio acessou/perguntou (histórico de perguntas).
+- Visualização com gráficos, não só tabela.
+
+**Decisão de escopo (2026-09-01):** fica com a Máquina 1 construir — os dados só existem dentro
+deste app (é aqui que o sócio autentica e faz perguntas), então não faz sentido duplicar isso no
+Hub (Conta 2). Se o Robson quiser, o Hub pode depois só linkar/abrir essa página, sem duplicar
+lógica nem conexão com o banco.
+
+**Hoje o app não registra nada disso** — não há tabela de eventos, login não é logado, perguntas
+não ficam salvas. Precisa construir do zero:
+
+1. Tabela de eventos (SQLite local, mesmo padrão do Comunicação Direta): `pessoa_id`, tipo de
+   evento (`login`, `pergunta`), timestamp, e pra `pergunta` também o texto e quais empresas foram
+   consultadas (não guardar áudio bruto, só a transcrição).
+2. "Sessão"/tempo de navegação: como o app é stateless por request, aproximar sessão agrupando
+   eventos do mesmo sócio com gap menor que ~30min entre eles; duração = último evento − primeiro
+   evento da sessão.
+3. Dashboard (`/admin` ou nova rota, mesma basic auth) com gráficos — por sócio: nº de acessos,
+   última vez que entrou, tempo médio de sessão, perguntas mais recentes. Pensar em biblioteca de
+   gráfico simples e leve (SVG inline ou Chart.js vendorizado, sem depender de CDN externo já que
+   a página é servida da própria VPS).
+
+**Não implementado ainda** — combinado com o Robson (2026-09-01) que fica documentado aqui e
+construído numa sessão futura, pra não esticar demais a sessão de hoje (que já entregou o v1 +
+deploy completo + página simples de links).
 
 ## Deploy (concluído em 2026-08-31/09-01)
 
@@ -84,9 +127,12 @@ Rodando na VPS Andrea, mesmo padrão do Comunicação Direta:
   troca do repo pra privado por um cooldown de segurança pós-criação; retomar isso depois, não tem
   segredo nenhum commitado enquanto isso).
 - Código em `/opt/pergunta-por-socio` na VPS, `.env` de produção com `chmod 600` (token secret
-  próprio de produção, diferente do usado em dev local).
+  próprio de produção, diferente do usado em dev local). `git config core.sshCommand` apontado pra
+  deploy key (`/home/ubuntu/.ssh/pergunta_socio_deploy`) pra `git pull` funcionar sem prompt.
 - Container Docker `pergunta-por-socio`, `--restart always`, `127.0.0.1:3200` (não exposto direto).
-- Reverse proxy: bloco em `/opt/ia-produtividade/caddy/Caddyfile` pra `socios.plataformafacil.com.br`.
+- Reverse proxy: bloco em `/opt/ia-produtividade/caddy/Caddyfile` pra `socios.plataformafacil.com.br`,
+  com `handle /admin/*` protegido por basic auth (usuário `robson`) e o resto liberado (rota do
+  sócio já tem seu próprio controle de acesso via token assinado).
 - DNS: registro A em Cloudflare (`socios` → `157.151.22.192`, proxied) — criado pelo Robson (esse
   painel é bloqueado pra automação).
 - **Detalhe importante de conexão**: o host direto do Supabase (`db.<ref>.supabase.co`) só resolve
@@ -94,7 +140,8 @@ Rodando na VPS Andrea, mesmo padrão do Comunicação Direta:
   (`aws-0-sa-east-1.pooler.supabase.com:5432`, usuário no formato `<role>.<project_ref>`), que é
   IPv4. Isso vale pra qualquer outro app que precise conectar direto num Postgres do Supabase a
   partir dessa VPS.
-- Testado ponta a ponta via `https://socios.plataformafacil.com.br` com link real do Leandro.
+- Testado ponta a ponta via `https://socios.plataformafacil.com.br` com link real do Leandro (voz
+  real, confirmado pelo Robson) e via `/admin/socios` (basic auth confirmado bloqueando sem senha).
 
 Atualizar o código:
 
