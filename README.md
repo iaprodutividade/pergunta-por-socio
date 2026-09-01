@@ -72,10 +72,41 @@ provavelmente SQLite local nesta app, no mesmo padrão do Comunicação Direta.
 
 **Não implementado ainda** — construir depois do v1 (lançamentos) estar rodando de verdade.
 
-- **Deploy** ainda não feito — decisão é rodar na VPS Andrea (Caddy + Docker, mesmo padrão do
-  Comunicação Direta), falta provisionar.
 - **Entrega do link** é manual (Robson envia por WhatsApp/e-mail) — sem automação por enquanto.
 - Sem testes automatizados ainda.
+
+## Deploy (concluído em 2026-08-31/09-01)
+
+Rodando na VPS Andrea, mesmo padrão do Comunicação Direta:
+
+- Repositório: `github.com/iaprodutividade/pergunta-por-socio` (deploy key read-only `Andrea VPS
+  deploy read-only` cadastrada nas Settings do repo — nota: o GitHub bloqueou temporariamente a
+  troca do repo pra privado por um cooldown de segurança pós-criação; retomar isso depois, não tem
+  segredo nenhum commitado enquanto isso).
+- Código em `/opt/pergunta-por-socio` na VPS, `.env` de produção com `chmod 600` (token secret
+  próprio de produção, diferente do usado em dev local).
+- Container Docker `pergunta-por-socio`, `--restart always`, `127.0.0.1:3200` (não exposto direto).
+- Reverse proxy: bloco em `/opt/ia-produtividade/caddy/Caddyfile` pra `socios.plataformafacil.com.br`.
+- DNS: registro A em Cloudflare (`socios` → `157.151.22.192`, proxied) — criado pelo Robson (esse
+  painel é bloqueado pra automação).
+- **Detalhe importante de conexão**: o host direto do Supabase (`db.<ref>.supabase.co`) só resolve
+  IPv6, e a VPS Andrea não tem rota IPv6 — por isso o app usa o **Session Pooler** do Supabase
+  (`aws-0-sa-east-1.pooler.supabase.com:5432`, usuário no formato `<role>.<project_ref>`), que é
+  IPv4. Isso vale pra qualquer outro app que precise conectar direto num Postgres do Supabase a
+  partir dessa VPS.
+- Testado ponta a ponta via `https://socios.plataformafacil.com.br` com link real do Leandro.
+
+Atualizar o código:
+
+```bash
+bash ~/.ssh/hermes_ssh_wrapper.sh "cd /opt/pergunta-por-socio && sudo git pull && sudo docker build -t pergunta-por-socio:latest . && sudo docker rm -f pergunta-por-socio && sudo docker run -d --name pergunta-por-socio --restart always --env-file /opt/pergunta-por-socio/.env -p 127.0.0.1:3200:3200 pergunta-por-socio:latest"
+```
+
+Gerar link de um sócio direto na VPS:
+
+```bash
+bash ~/.ssh/hermes_ssh_wrapper.sh "sudo docker exec pergunta-por-socio node src/generate-link.js \"Nome do sócio\""
+```
 
 ## Segredos
 
