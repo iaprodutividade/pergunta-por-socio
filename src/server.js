@@ -88,5 +88,71 @@ app.post('/api/ask', autenticar, upload.single('audio'), async (req, res) => {
   }
 });
 
+// Página administrativa (só o Robson, protegida por basic auth no Caddy — ver README) com os
+// links de cada sócio prontos pra copiar e mandar por WhatsApp. Token estável (não muda a cada
+// carregamento) pra ele poder comparar com o que já mandou antes.
+app.get('/admin/socios', async (req, res) => {
+  try {
+    const socios = await db.todosOsSocios();
+    const base = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+
+    const linhas = socios
+      .map((s) => {
+        const link = `${base}/s/${token.signStavel({ pessoaId: s.pessoaId, pessoaNome: s.pessoaNome })}`;
+        return `
+          <tr>
+            <td>${s.pessoaNome}</td>
+            <td>${s.empresas.join(', ')}</td>
+            <td class="link-cell">
+              <code id="link-${s.pessoaId}">${link}</code>
+              <button onclick="copiar('link-${s.pessoaId}', this)">Copiar</button>
+            </td>
+          </tr>`;
+      })
+      .join('');
+
+    res.send(`<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Links dos sócios</title>
+<style>
+  body { background:#0b1220; color:#e8ecf5; font-family:-apple-system,Segoe UI,Roboto,sans-serif; padding:24px; }
+  h1 { font-size:18px; color:#93a0bd; font-weight:600; }
+  table { width:100%; border-collapse:collapse; margin-top:16px; }
+  th, td { text-align:left; padding:10px 12px; border-bottom:1px solid #24304d; vertical-align:top; }
+  th { color:#93a0bd; font-size:13px; font-weight:600; }
+  code { background:#141d33; border:1px solid #24304d; border-radius:6px; padding:4px 8px; font-size:12px; word-break:break-all; }
+  button { margin-left:8px; background:#3b82f6; color:white; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; font-size:12px; }
+  button.copiado { background:#22c55e; }
+  .link-cell { max-width:420px; }
+  .nota { color:#93a0bd; font-size:13px; margin-top:20px; }
+</style>
+</head>
+<body>
+  <h1>Links de acesso — Pergunta por sócio</h1>
+  <table>
+    <thead><tr><th>Sócio</th><th>Empresas</th><th>Link (copiar e mandar por WhatsApp)</th></tr></thead>
+    <tbody>${linhas}</tbody>
+  </table>
+  <p class="nota">Links estáveis — não expiram até 2030. O Robson não tem link próprio (já tem acesso direto ao Mural Financeiro).</p>
+  <script>
+    function copiar(id, btn) {
+      const texto = document.getElementById(id).textContent;
+      navigator.clipboard.writeText(texto).then(() => {
+        btn.textContent = 'Copiado!';
+        btn.classList.add('copiado');
+        setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copiado'); }, 1500);
+      });
+    }
+  </script>
+</body>
+</html>`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Falha ao carregar sócios.');
+  }
+});
+
 const PORT = process.env.PORT || 3200;
 app.listen(PORT, () => console.log(`pergunta-por-socio rodando na porta ${PORT}`));

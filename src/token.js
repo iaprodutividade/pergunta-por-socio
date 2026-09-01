@@ -38,4 +38,10 @@ function verify(token) {
   return payload;
 }
 
-module.exports = { sign, verify };
+// Token estável de longa duração pra exibição administrativa (/admin) — não usa Date.now(),
+// senão o link mostrado mudaria a cada carregamento da página. Expira em 2030, bem longe.
+function signStavel(payload) {
+  return sign({ ...payload, exp: Date.parse('2030-01-01T00:00:00Z') });
+}
+
+module.exports = { sign, verify, signStavel };

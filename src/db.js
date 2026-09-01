@@ -56,4 +56,19 @@ async function lancamentos({ empresaIds, dataInicio, dataFim, natureza, limite =
   return rows;
 }
 
-module.exports = { pool, empresasDoSocio, lancamentos };
+// Todos os sócios com suas empresas, agrupados — usado só na página administrativa (/admin).
+async function todosOsSocios() {
+  const { rows } = await pool.query(
+    'SELECT pessoa_id, pessoa_nome, empresa_nome FROM v_socio_empresas ORDER BY pessoa_nome, empresa_nome'
+  );
+  const porPessoa = new Map();
+  for (const r of rows) {
+    if (!porPessoa.has(r.pessoa_id)) {
+      porPessoa.set(r.pessoa_id, { pessoaId: r.pessoa_id, pessoaNome: r.pessoa_nome, empresas: [] });
+    }
+    porPessoa.get(r.pessoa_id).empresas.push(r.empresa_nome);
+  }
+  return [...porPessoa.values()];
+}
+
+module.exports = { pool, empresasDoSocio, lancamentos, todosOsSocios };
