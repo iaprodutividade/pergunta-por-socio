@@ -78,10 +78,14 @@ app.post('/api/ask', autenticar, upload.single('audio'), async (req, res) => {
       natureza: interpretacao.natureza || null,
     });
 
+    // "status" (pendente/confirmado) é controle interno do escritório, não interessa ao sócio —
+    // nem entra nos dados que a IA recebe, pra não ter risco de mencionar por engano.
+    const lancamentosParaIA = registros.slice(0, 50).map(({ status, ...resto }) => resto);
+
     const contexto = {
       empresas_consultadas: empresasPermitidas.filter((e) => empresaIds.includes(e.empresa_id)).map((e) => e.empresa_nome),
       quantidade_lancamentos: registros.length,
-      lancamentos: registros.slice(0, 50),
+      lancamentos: lancamentosParaIA,
       aviso: interpretacao.pedido_tipo === 'saldo'
         ? 'Cálculo de saldo (extrato bancário + lançamentos) ainda não está disponível neste app — só lançamentos.'
         : null,
