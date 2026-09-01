@@ -144,7 +144,7 @@ app.get('/admin/socios', async (req, res) => {
           .map((nome, j) => `<span class="icone-selo ${CORES[j % 4]}" style="width:auto;height:auto;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;margin:0 6px 6px 0">${nome}</span>`)
           .join('');
         return `
-          <div class="card-empresa" style="grid-column:1 / -1">
+          <div class="card-empresa">
             <p class="nome-empresa" style="margin-bottom:10px">${s.pessoaNome}</p>
             <div style="display:flex;flex-wrap:wrap;margin-bottom:12px">${badges}</div>
             <div style="display:flex;align-items:center;gap:8px">
@@ -174,7 +174,7 @@ app.get('/admin/socios', async (req, res) => {
       </div>
     </header>
     <p class="secao-rotulo">Copiar e mandar por WhatsApp</p>
-    <div class="grid-empresas">${cards}</div>
+    <div class="grid-socios">${cards}</div>
     <p class="status" style="margin-top:8px">Links estáveis, não expiram até 2030. Você não tem link próprio — já tem acesso direto ao Mural Financeiro.</p>
   </div>
   <script>

@@ -147,6 +147,13 @@ body {
   margin: 0 0 12px 4px;
 }
 
+.grid-socios {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
 .grid-empresas {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -288,3 +295,29 @@ body {
 .botao-ouvir .oculto { display: none; }
 .botao-ouvir:disabled { opacity: 0.6; cursor: default; }
 .botao-ouvir.tocando { color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
+
+@media (min-width: 640px) {
+  .tela {
+    max-width: 620px;
+    padding-top: 40px;
+  }
+}
+
+@media (min-width: 960px) {
+  .tela {
+    max-width: 760px;
+    padding-top: 56px;
+  }
+
+  .grid-empresas {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  .grid-socios {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+
+  .card-mic {
+    padding: 44px 36px;
+  }
+}
