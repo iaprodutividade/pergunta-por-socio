@@ -71,4 +71,14 @@ async function todosOsSocios() {
   return [...porPessoa.values()];
 }
 
-module.exports = { pool, empresasDoSocio, lancamentos, todosOsSocios };
+// Nome de um sócio específico por pessoa_id — usado pelo endpoint interno que o
+// Mural Financeiro chama pra montar o link mágico direto do botão "Pergunte por voz".
+async function nomeDoSocio(pessoaId) {
+  const { rows } = await pool.query(
+    'SELECT DISTINCT pessoa_nome FROM v_socio_empresas WHERE pessoa_id = $1 LIMIT 1',
+    [pessoaId]
+  );
+  return rows[0]?.pessoa_nome || null;
+}
+
+module.exports = { pool, empresasDoSocio, lancamentos, todosOsSocios, nomeDoSocio };

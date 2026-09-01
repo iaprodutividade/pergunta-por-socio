@@ -43,6 +43,29 @@ app.get(['/', '/s/:token'], (req, res) => {
   res.type('html').send(INDEX_HTML);
 });
 
+// Endpoint interno: o Mural Financeiro chama isso no backend dele (nunca do navegador
+// do sócio) pra montar o botão "Pergunte por voz" já apontando pro link mágico da
+// pessoa logada, sem ela precisar colar nada. Protegido por segredo compartilhado
+// nos dois lados (INTERNAL_LINK_SECRET), separado do TOKEN_SECRET que assina os
+// links em si — assim o Mural Financeiro nunca precisa saber como o token é assinado.
+app.get('/api/link-para-pessoa/:pessoaId', async (req, res) => {
+  const segredo = req.headers['x-internal-secret'];
+  if (!process.env.INTERNAL_LINK_SECRET || segredo !== process.env.INTERNAL_LINK_SECRET) {
+    return res.status(401).json({ erro: 'Não autorizado.' });
+  }
+  try {
+    const pessoaNome = await db.nomeDoSocio(req.params.pessoaId);
+    if (!pessoaNome) return res.status(404).json({ erro: 'Pessoa não é sócio.' });
+
+    const base = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const link = `${base}/s/${token.signStavel({ pessoaId: req.params.pessoaId, pessoaNome })}`;
+    res.json({ url: link });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: 'Falha ao gerar link.' });
+  }
+});
+
 app.get('/api/me', autenticar, async (req, res) => {
   try {
     const empresas = await db.empresasDoSocio(req.socio.pessoaId);
