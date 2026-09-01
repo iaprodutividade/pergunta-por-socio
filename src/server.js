@@ -54,11 +54,22 @@ app.post('/api/ask', autenticar, upload.single('audio'), async (req, res) => {
     const interpretacao = await openai.interpretarPergunta(pergunta, empresasPermitidas);
 
     if (!interpretacao.pergunta_valida) {
-      return res.json({
-        pergunta,
-        resposta: 'Não entendi uma pergunta sobre sua empresa aí. Pode repetir perguntando sobre lançamentos ou saldo?',
-        quantidade: 0,
+      // Não deixa o sócio num beco sem saída: mostra os lançamentos mais recentes dele
+      // (dado real, sem IA — não precisa interpretar nada) e sugere como perguntar.
+      const recentes = await db.lancamentos({
+        empresaIds: empresasPermitidas.map((e) => e.empresa_id),
+        limite: 3,
       });
+      const formatador = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+      const dicas = 'Você pode perguntar, por exemplo: "o que foi lançado hoje", "o que foi lançado esse mês" ou "quais foram os últimos lançamentos".';
+
+      const resposta = recentes.length
+        ? `Não entendi uma pergunta financeira aí. Enquanto isso, seus lançamentos mais recentes: ${recentes
+            .map((l) => `${l.empresa_nome} — ${l.descricao} (${formatador.format(l.valor)})`)
+            .join('; ')}. ${dicas}`
+        : `Não entendi uma pergunta financeira aí. ${dicas}`;
+
+      return res.json({ pergunta, resposta, quantidade: recentes.length });
     }
 
     // Isolamento por sócio garantido AQUI: só aceita nomes que já estão na lista autorizada,

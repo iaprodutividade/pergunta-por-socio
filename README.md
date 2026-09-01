@@ -73,7 +73,8 @@ Fluxo quando o sócio pergunta sobre saldo:
    ele quer ver o extrato; se sim, entrega o arquivo dentro do próprio app (endpoint de download
    autenticado pelo mesmo token do link mágico).
 2. **Extrato ausente ou vencido (>7 dias)** → avisa o sócio que vai pedir pro Robson, e dispara uma
-   mensagem pro Robson via **Telegram** (reaproveitando o bot que já existe no Comunicação Direta)
+   mensagem pro Robson via **WhatsApp** (Evolution Andrea — atualizado 2026-09-02, era Telegram na
+   spec original, Robson preferiu unificar em WhatsApp já que a integração já está ativa)
    pedindo pra subir o extrato daquela empresa.
 3. **Quando o Robson sobe o extrato** → o app confirma o recebimento pra ele, e manda uma mensagem
    automática de volta pro sócio via **WhatsApp** (Evolution Andrea, `evo-andrea.plataformafacil.com.br`)
