@@ -7,6 +7,10 @@
   const avatar = document.getElementById('avatar');
   const tituloTopo = document.getElementById('tituloTopo');
   const gridEmpresas = document.getElementById('gridEmpresas');
+  const botaoOuvir = document.getElementById('botaoOuvir');
+  const iconeOuvir = botaoOuvir.querySelector('.icone-ouvir');
+  const iconeParar = botaoOuvir.querySelector('.icone-parar');
+  const textoBotaoOuvir = document.getElementById('textoBotaoOuvir');
 
   // Tema (claro/escuro/sistema) — persiste por navegador, não sincroniza entre dispositivos.
   const botoesTema = document.querySelectorAll('.botao-tema');
@@ -67,12 +71,48 @@
     }
   }
 
-  function falar(texto) {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(texto);
-    utter.lang = 'pt-BR';
-    window.speechSynthesis.speak(utter);
+  // Áudio da resposta é gerado sob demanda (OpenAI TTS), só quando o sócio toca "Ouvir".
+  // Nunca toca sozinho — combinado com o Robson depois de reclamação sobre a voz do navegador.
+  let audioAtual = null;
+
+  function pararAudio() {
+    if (audioAtual) {
+      audioAtual.pause();
+      audioAtual = null;
+    }
+    iconeOuvir.classList.remove('oculto');
+    iconeParar.classList.add('oculto');
+    textoBotaoOuvir.textContent = 'Ouvir';
+    botaoOuvir.classList.remove('tocando');
+  }
+
+  async function tocarResposta(texto) {
+    if (audioAtual) { pararAudio(); return; }
+
+    botaoOuvir.disabled = true;
+    textoBotaoOuvir.textContent = 'Carregando...';
+    try {
+      const r = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texto }),
+      });
+      if (!r.ok) throw new Error('falha ao gerar áudio');
+
+      const blob = await r.blob();
+      audioAtual = new Audio(URL.createObjectURL(blob));
+      audioAtual.onended = pararAudio;
+      audioAtual.play();
+
+      iconeOuvir.classList.add('oculto');
+      iconeParar.classList.remove('oculto');
+      textoBotaoOuvir.textContent = 'Parar';
+      botaoOuvir.classList.add('tocando');
+    } catch {
+      textoBotaoOuvir.textContent = 'Ouvir';
+    } finally {
+      botaoOuvir.disabled = false;
+    }
   }
 
   async function iniciarGravacao() {
@@ -113,10 +153,11 @@
       const dados = await r.json();
       if (!r.ok) throw new Error(dados.erro || 'Falha ao processar');
 
+      pararAudio();
       perguntaTexto.textContent = `"${dados.pergunta}"`;
       respostaTexto.textContent = dados.resposta;
+      botaoOuvir.onclick = () => tocarResposta(dados.resposta);
       cartao.classList.remove('oculto');
-      falar(dados.resposta);
       status.textContent = 'Toque no microfone e pergunte qualquer coisa sobre sua empresa';
     } catch (err) {
       status.textContent = err.message || 'Algo deu errado. Tente de novo.';

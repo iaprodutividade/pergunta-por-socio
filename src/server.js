@@ -53,6 +53,14 @@ app.post('/api/ask', autenticar, upload.single('audio'), async (req, res) => {
 
     const interpretacao = await openai.interpretarPergunta(pergunta, empresasPermitidas);
 
+    if (!interpretacao.pergunta_valida) {
+      return res.json({
+        pergunta,
+        resposta: 'Não entendi uma pergunta sobre sua empresa aí. Pode repetir perguntando sobre lançamentos ou saldo?',
+        quantidade: 0,
+      });
+    }
+
     // Isolamento por sócio garantido AQUI: só aceita nomes que já estão na lista autorizada,
     // nunca confia no que o modelo devolveu além disso.
     const nomesPermitidos = new Set(empresasPermitidas.map((e) => e.empresa_nome));
@@ -85,6 +93,21 @@ app.post('/api/ask', autenticar, upload.single('audio'), async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ erro: 'Falha ao processar a pergunta.' });
+  }
+});
+
+// Fala a resposta em voz — só chamado quando o sócio toca no alto-falante, nunca automático.
+app.post('/api/tts', autenticar, async (req, res) => {
+  try {
+    const texto = String(req.body?.texto || '').slice(0, 1000);
+    if (!texto) return res.status(400).json({ erro: 'Texto vazio.' });
+
+    const audio = await openai.sintetizarVoz(texto);
+    res.set('Content-Type', 'audio/mpeg');
+    res.send(audio);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: 'Falha ao gerar áudio.' });
   }
 });
 

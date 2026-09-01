@@ -267,5 +267,24 @@ body {
 .resposta-texto {
   font-size: 14px;
   line-height: 1.6;
-  margin: 0;
+  margin: 0 0 14px;
 }
+
+.botao-ouvir {
+  border: 1px solid var(--card-borda);
+  background: transparent;
+  color: var(--texto-sec);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.botao-ouvir svg { width: 15px; height: 15px; }
+.botao-ouvir .oculto { display: none; }
+.botao-ouvir:disabled { opacity: 0.6; cursor: default; }
+.botao-ouvir.tocando { color: #f87171; border-color: rgba(239, 68, 68, 0.4); }

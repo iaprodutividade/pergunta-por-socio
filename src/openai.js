@@ -37,8 +37,13 @@ Data de hoje: ${hoje}
 
 Pergunta do sócio (transcrita por voz, pode ter erros de transcrição): "${pergunta}"
 
-Responda em JSON com este formato exato:
+Primeiro avalie: isso é de fato uma pergunta sobre lançamentos/saldo/finanças da empresa, ou é
+outra coisa (cumprimento tipo "alô", ruído, transcrição sem sentido, pergunta fora do assunto)?
+Se NÃO for uma pergunta financeira válida, responda só com {"pergunta_valida": false} e nada mais.
+
+Se FOR válida, responda em JSON com este formato exato:
 {
+  "pergunta_valida": true,
   "empresas": ["nome exatamente como na lista, uma ou mais; vazio [] se a pergunta for sobre todas"],
   "data_inicio": "YYYY-MM-DD ou null",
   "data_fim": "YYYY-MM-DD ou null",
@@ -65,4 +70,27 @@ Se houver algum aviso nos dados (ex: extrato desatualizado), mencione por últim
   return chamarOpenAI([{ role: 'user', content: prompt }], { maxTokens: 300 });
 }
 
-module.exports = { interpretarPergunta, responderComDados };
+// Síntese de voz sob demanda (só quando o sócio toca no alto-falante, não automático).
+// Retorna um Buffer de áudio mp3.
+async function sintetizarVoz(texto) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error('OPENAI_API_KEY não configurada');
+
+  const resposta = await fetch('https://api.openai.com/v1/audio/speech', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini-tts',
+      voice: 'alloy',
+      input: texto,
+      response_format: 'mp3',
+    }),
+  });
+
+  if (!resposta.ok) {
+    throw new Error(`openai tts falhou (${resposta.status}): ${await resposta.text()}`);
+  }
+  return Buffer.from(await resposta.arrayBuffer());
+}
+
+module.exports = { interpretarPergunta, responderComDados, sintetizarVoz };
