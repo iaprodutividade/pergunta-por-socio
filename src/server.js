@@ -148,7 +148,7 @@ app.get('/admin/socios', async (req, res) => {
             <p class="nome-empresa" style="margin-bottom:10px">${s.pessoaNome}</p>
             <div style="display:flex;flex-wrap:wrap;margin-bottom:12px">${badges}</div>
             <div style="display:flex;align-items:center;gap:8px">
-              <code id="link-${s.pessoaId}" style="flex:1;background:var(--card-grad-1);border:1px solid var(--card-borda);border-radius:8px;padding:6px 10px;font-size:11px;word-break:break-all;color:var(--texto-sec)">${link}</code>
+              <code id="link-${s.pessoaId}" style="flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:11px;word-break:break-all;color:var(--text-secondary)">${link}</code>
               <button class="botao-mic" style="padding:8px 14px;flex-shrink:0" onclick="copiar('link-${s.pessoaId}', this)">Copiar</button>
             </div>
           </div>`;
@@ -160,17 +160,39 @@ app.get('/admin/socios', async (req, res) => {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#050505" />
 <title>Links dos sócios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/style.css" />
 <style>.copiado { background: #22c55e !important; }</style>
+<script>
+  try {
+    var t = localStorage.getItem('tema');
+    if (t === 'claro' || t === 'intermediario') document.documentElement.setAttribute('data-theme', t);
+  } catch (e) {}
+</script>
 </head>
 <body>
+  <div class="fundo-ambiente"><div class="mancha-ambar"></div><div class="grade-ambiente"></div></div>
   <div class="tela">
     <header class="topo">
       <div class="avatar">A</div>
       <div class="topo-textos">
         <p class="rotulo-topo">Mural Financeiro</p>
         <p class="titulo-topo">Links dos sócios</p>
+      </div>
+      <div class="topo-acoes">
+        <button class="botao-tema" data-tema="claro" aria-label="Tema claro" title="Tema claro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+        <button class="botao-tema" data-tema="intermediario" aria-label="Tema intermediário" title="Tema intermediário">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <button class="botao-tema" data-tema="escuro" aria-label="Tema escuro" title="Tema escuro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+        </button>
       </div>
     </header>
     <p class="secao-rotulo">Copiar e mandar por WhatsApp</p>
@@ -187,6 +209,19 @@ app.get('/admin/socios', async (req, res) => {
         setTimeout(() => { btn.textContent = original; btn.classList.remove('copiado'); }, 1500);
       });
     }
+
+    var botoesTema = document.querySelectorAll('.botao-tema');
+    function aplicarTema(tema) {
+      if (tema === 'claro' || tema === 'intermediario') {
+        document.documentElement.setAttribute('data-theme', tema);
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+      botoesTema.forEach(function (b) { b.classList.toggle('ativo', b.dataset.tema === tema); });
+      localStorage.setItem('tema', tema);
+    }
+    botoesTema.forEach(function (b) { b.addEventListener('click', function () { aplicarTema(b.dataset.tema); }); });
+    aplicarTema(localStorage.getItem('tema') || 'escuro');
   </script>
 </body>
 </html>`);

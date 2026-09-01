@@ -12,10 +12,11 @@
   const iconeParar = botaoOuvir.querySelector('.icone-parar');
   const textoBotaoOuvir = document.getElementById('textoBotaoOuvir');
 
-  // Tema (claro/escuro/sistema) — persiste por navegador, não sincroniza entre dispositivos.
+  // Tema (claro/intermediário/escuro) — mesmo esquema do Hub, persiste por
+  // navegador, não sincroniza entre dispositivos. Escuro é o padrão, sem atributo.
   const botoesTema = document.querySelectorAll('.botao-tema');
   function aplicarTema(tema) {
-    if (tema === 'dark' || tema === 'light') {
+    if (tema === 'claro' || tema === 'intermediario') {
       document.documentElement.setAttribute('data-theme', tema);
     } else {
       document.documentElement.removeAttribute('data-theme');
@@ -24,7 +25,7 @@
     localStorage.setItem('tema', tema);
   }
   botoesTema.forEach((b) => b.addEventListener('click', () => aplicarTema(b.dataset.tema)));
-  aplicarTema(localStorage.getItem('tema') || 'auto');
+  aplicarTema(localStorage.getItem('tema') || 'escuro');
 
   const ICONE_PREDIO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1"/></svg>';
 
