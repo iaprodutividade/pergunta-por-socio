@@ -11,7 +11,10 @@ const db = require('./db');
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 
-app.use(express.static(path.join(__dirname, '..', 'public')));
+// maxAge: 0 — cache já nasce "stale", navegador sempre revalida (via ETag) antes
+// de reusar app.js/style.css. Sem isso, quem já visitou fica preso numa versão
+// antiga depois de um deploy (foi o caso do tema quebrado pro Robson).
+app.use(express.static(path.join(__dirname, '..', 'public'), { maxAge: 0, etag: true, cacheControl: true }));
 app.use(express.json());
 
 // Middleware: valida o token do link mágico (header Authorization: Bearer <token>).
