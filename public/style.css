@@ -299,9 +299,25 @@ body {
   align-items: center;
   justify-content: center;
   margin-bottom: 12px;
-  color: #0b1220;
-  -webkit-text-stroke: 0.3px rgba(255, 255, 255, 0.75);
+  color: #000;
   transition: transform 0.15s, filter 0.15s;
+}
+
+/* Variante usada quando o conteúdo é TEXTO (nome da empresa em pílula, ex:
+   /admin/socios) em vez de ícone SVG — texto pequeno em negrito perde nitidez
+   com só a cor escura (o ícone do microfone é vetor grosso, sempre nítido;
+   fonte a 12px não). Mesmo truque do .botao-mic: branco + contorno preto,
+   sempre com esse contraste não importa a cor de fundo. */
+.icone-selo.rotulo {
+  color: #fff;
+  font-weight: 800;
+  -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.65);
+  text-shadow:
+    -1px -1px 0 rgba(0, 0, 0, 0.75),
+    1px -1px 0 rgba(0, 0, 0, 0.75),
+    -1px 1px 0 rgba(0, 0, 0, 0.75),
+    1px 1px 0 rgba(0, 0, 0, 0.75),
+    0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .icone-selo.cor-0 {
