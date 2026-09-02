@@ -178,7 +178,7 @@ app.get('/admin/socios', async (req, res) => {
       .map((s, i) => {
         const link = `${base}/s/${token.signStavel({ pessoaId: s.pessoaId, pessoaNome: s.pessoaNome })}`;
         const badges = s.empresas
-          .map((nome, j) => `<span class="icone-selo ${CORES[j % 4]}" style="width:auto;height:auto;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;margin:0 6px 6px 0">${nome}</span>`)
+          .map((nome, j) => `<span class="icone-selo ${CORES[j % 4]}" style="width:auto;height:auto;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;margin:0 6px 6px 0;color:#fff;-webkit-text-stroke:0.6px rgba(0,0,0,0.65);text-shadow:-1px -1px 0 rgba(0,0,0,.75),1px -1px 0 rgba(0,0,0,.75),-1px 1px 0 rgba(0,0,0,.75),1px 1px 0 rgba(0,0,0,.75),0 1px 3px rgba(0,0,0,.5)">${nome}</span>`)
           .join('');
         return `
           <div class="card-empresa">

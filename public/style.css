@@ -186,14 +186,19 @@ body {
   height: 44px;
   border-radius: 16px;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #3b82f6, #0284c7);
-  box-shadow: 0 8px 20px -8px rgba(3, 22, 66, 0.5);
+  background: linear-gradient(180deg, #38bdf8, #3b82f6);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 17px;
   color: #fff;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 0 8px 1px rgba(56, 189, 248, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.35),
+    0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
 .topo-textos { flex: 1; min-width: 0; }
@@ -294,12 +299,54 @@ body {
   align-items: center;
   justify-content: center;
   margin-bottom: 12px;
+  color: #0b1220;
+  -webkit-text-stroke: 0.3px rgba(255, 255, 255, 0.75);
+  transition: transform 0.15s, filter 0.15s;
 }
 
-.icone-selo.cor-0 { background: var(--status-emerald-bg); color: var(--status-emerald-label); }
-.icone-selo.cor-1 { background: var(--status-violet-bg); color: var(--status-violet-label); }
-.icone-selo.cor-2 { background: var(--status-amber-bg); color: var(--status-amber-label); }
-.icone-selo.cor-3 { background: var(--status-rose-bg); color: var(--status-rose-label); }
+.icone-selo.cor-0 {
+  background: linear-gradient(180deg, #34d399, #10b981);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 0 8px 1px rgba(52, 211, 153, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.35),
+    0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.icone-selo.cor-1 {
+  background: linear-gradient(180deg, #a78bfa, #a855f7);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 0 8px 1px rgba(167, 139, 250, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.35),
+    0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.icone-selo.cor-2 {
+  background: linear-gradient(180deg, #fcd34d, #f97316);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 0 8px 1px rgba(251, 191, 36, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.35),
+    0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.icone-selo.cor-3 {
+  background: linear-gradient(180deg, #fb7185, #ef4444);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 0 8px 1px rgba(251, 113, 133, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.35),
+    0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.icone-selo.cor-0:hover, .icone-selo.cor-1:hover, .icone-selo.cor-2:hover, .icone-selo.cor-3:hover {
+  filter: brightness(1.1);
+}
 
 .icone-selo svg { width: 19px; height: 19px; }
 
@@ -391,8 +438,14 @@ body {
   border: none;
   border-radius: 14px;
   background: linear-gradient(180deg, #38bdf8, #3b82f6);
-  color: #0b1220;
-  -webkit-text-stroke: 0.4px rgba(255, 255, 255, 0.8);
+  color: #fff;
+  -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.65);
+  text-shadow:
+    -1px -1px 0 rgba(0, 0, 0, 0.75),
+    1px -1px 0 rgba(0, 0, 0, 0.75),
+    -1px 1px 0 rgba(0, 0, 0, 0.75),
+    1px 1px 0 rgba(0, 0, 0, 0.75),
+    0 1px 3px rgba(0, 0, 0, 0.5);
   font-size: 14px;
   font-weight: 700;
   padding: 12px 24px;
