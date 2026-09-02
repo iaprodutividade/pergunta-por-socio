@@ -203,7 +203,6 @@ app.get('/admin/socios', async (req, res) => {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/style.css?v=${ASSET_VERSION}" />
-<style>.copiado { background: #22c55e !important; }</style>
 <script>
   try {
     var t = localStorage.getItem('tema');
