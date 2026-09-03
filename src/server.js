@@ -69,7 +69,7 @@ app.get('/api/link-para-pessoa/:pessoaId', async (req, res) => {
 app.get('/api/me', autenticar, async (req, res) => {
   try {
     const empresas = await db.empresasDoSocio(req.socio.pessoaId);
-    res.json({ nome: req.socio.pessoaNome, empresas });
+    res.json({ nome: req.socio.pessoaNome, pessoaId: req.socio.pessoaId, empresas });
   } catch (err) {
     console.error(err);
     res.status(500).json({ erro: 'Falha ao carregar empresas do sócio.' });

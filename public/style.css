@@ -520,6 +520,50 @@ body {
   color: var(--text-primary);
 }
 
+.botao-historico {
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #a78bfa, #a855f7);
+  color: #fff;
+  -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.65);
+  text-shadow:
+    -1px -1px 0 rgba(0, 0, 0, 0.75),
+    1px -1px 0 rgba(0, 0, 0, 0.75),
+    -1px 1px 0 rgba(0, 0, 0, 0.75),
+    1px 1px 0 rgba(0, 0, 0, 0.75),
+    0 1px 3px rgba(0, 0, 0, 0.5);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 12px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 0 8px 1px rgba(167, 139, 250, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.35),
+    0 4px 10px rgba(0, 0, 0, 0.4);
+  transition: box-shadow 0.15s, transform 0.15s, filter 0.15s;
+}
+
+.botao-historico:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.55),
+    0 0 16px 3px rgba(167, 139, 250, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.35),
+    0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.botao-historico:active { transform: scale(0.97); filter: brightness(0.9); }
+.botao-historico svg { width: 16px; height: 16px; }
+
 .botao-ouvir {
   border: 1px solid var(--border);
   background: transparent;

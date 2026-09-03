@@ -7,6 +7,7 @@
   const avatar = document.getElementById('avatar');
   const tituloTopo = document.getElementById('tituloTopo');
   const gridEmpresas = document.getElementById('gridEmpresas');
+  const linkHistoricoAceites = document.getElementById('linkHistoricoAceites');
   const botaoOuvir = document.getElementById('botaoOuvir');
   const iconeOuvir = botaoOuvir.querySelector('.icone-ouvir');
   const iconeParar = botaoOuvir.querySelector('.icone-parar');
@@ -28,6 +29,10 @@
   aplicarTema(localStorage.getItem('tema') || 'escuro');
 
   const ICONE_PREDIO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1"/></svg>';
+
+  // Histórico de aceites (pedidos de aprovação) vive no Hub, não aqui — só
+  // aponta pro mesmo pessoaId que o Mural Financeiro já usa.
+  const ACEITES_BASE_URL = 'https://painel.plataformafacil.com.br/aceite/socio';
 
   // O token vem na URL (/s/<token>) só na primeira visita; depois fica salvo local
   // pra funcionar como PWA instalado (sem repetir o link toda vez).
@@ -66,6 +71,10 @@
             <p class="nome-empresa">${e.empresa_nome}</p>
           </div>`)
         .join('');
+
+      if (dados.pessoaId) {
+        linkHistoricoAceites.href = `${ACEITES_BASE_URL}/${dados.pessoaId}`;
+      }
     } catch {
       status.textContent = 'Link expirado ou inválido. Peça um novo link.';
       botao.disabled = true;
