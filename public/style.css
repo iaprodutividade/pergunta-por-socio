@@ -155,8 +155,8 @@ body {
     padding-top: 56px;
   }
 
-  .grid-empresas {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  .grid-empresas .card-empresa {
+    flex: 0 1 200px;
   }
 
   .grid-socios {
@@ -268,10 +268,19 @@ body {
 }
 
 .grid-empresas {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 12px;
   margin-bottom: 20px;
+}
+
+/* flex-basis pra caber 2 por linha; se sobrar 1 na ultima linha (ex: 3
+   empresas), o justify-content:center do container acima centraliza ela
+   em vez de deixar colada a esquerda como ficava com grid-template-columns. */
+.grid-empresas .card-empresa {
+  flex: 1 1 calc(50% - 6px);
+  min-width: 140px;
 }
 
 .card-empresa {
@@ -523,7 +532,7 @@ body {
 .botao-historico {
   border: none;
   border-radius: 14px;
-  background: linear-gradient(180deg, #a78bfa, #a855f7);
+  background: linear-gradient(180deg, #34d399, #10b981);
   color: #fff;
   -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.65);
   text-shadow:
@@ -543,7 +552,7 @@ body {
   text-decoration: none;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.4),
-    0 0 8px 1px rgba(167, 139, 250, 0.35),
+    0 0 8px 1px rgba(52, 211, 153, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.45),
     inset 0 -3px 5px rgba(0, 0, 0, 0.35),
     0 4px 10px rgba(0, 0, 0, 0.4);
@@ -555,7 +564,7 @@ body {
   filter: brightness(1.1);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.55),
-    0 0 16px 3px rgba(167, 139, 250, 0.55),
+    0 0 16px 3px rgba(52, 211, 153, 0.55),
     inset 0 1px 0 rgba(255, 255, 255, 0.5),
     inset 0 -3px 5px rgba(0, 0, 0, 0.35),
     0 4px 10px rgba(0, 0, 0, 0.4);
