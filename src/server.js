@@ -185,7 +185,13 @@ app.get('/admin/socios', async (req, res) => {
           <div class="card-empresa">
             <p class="nome-empresa" style="margin-bottom:10px">${s.pessoaNome}</p>
             <div style="display:flex;flex-wrap:wrap;margin-bottom:12px">${badges}</div>
-            <code id="link-${s.pessoaId}" style="display:block;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:11px;word-break:break-all;color:var(--text-secondary);margin-bottom:12px">${link}</code>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+              <code id="link-${s.pessoaId}" style="flex:1;display:block;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:11px;word-break:break-all;color:var(--text-secondary)">${link}</code>
+              <button class="botao-copia-inline" onclick="copiar('link-${s.pessoaId}', this)" title="Copiar link" aria-label="Copiar link">
+                <svg class="icone-copia" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <svg class="icone-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
+            </div>
             <div style="display:flex;gap:14px">
               <div class="acao-tile">
                 <button class="icone-selo azul-grande pequeno" onclick="copiar('link-${s.pessoaId}', this)">
@@ -292,8 +298,9 @@ app.get('/admin/socios', async (req, res) => {
             return;
           }
           document.getElementById('link-' + pessoaId).textContent = dados.shortUrl;
+          navigator.clipboard.writeText(dados.shortUrl).catch(function () {});
           btn.classList.add(classeSucesso);
-          rotulo.textContent = customSlug ? 'Salvo!' : 'Encurtado!';
+          rotulo.textContent = customSlug ? 'Salvo e copiado!' : 'Encurtado e copiado!';
           setTimeout(function () { btn.classList.remove(classeSucesso); rotulo.textContent = original; }, 1800);
         })
         .catch(function () {

@@ -517,6 +517,29 @@ body {
 
 .acao-tile:hover .acao-tile-rotulo { color: var(--text-primary); }
 
+/* Botão de copiar colado no próprio link (pedido do Robson 04/09, além do
+   tile "Copiar" grande já existente) — ícone vira check verde ao copiar. */
+.botao-copia-inline {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.botao-copia-inline:hover { color: var(--text-primary); border-color: var(--text-secondary); }
+.botao-copia-inline svg { width: 15px; height: 15px; }
+.botao-copia-inline .icone-check { display: none; }
+.botao-copia-inline.copiado { color: #10b981; border-color: #10b981; }
+.botao-copia-inline.copiado .icone-copia { display: none; }
+.botao-copia-inline.copiado .icone-check { display: flex; }
+
 @keyframes pulso {
   0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.45); }
   70% { box-shadow: 0 0 0 20px rgba(244, 63, 94, 0); }
