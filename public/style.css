@@ -313,20 +313,13 @@ body {
 }
 
 /* Variante usada quando o conteúdo é TEXTO (nome da empresa em pílula, ex:
-   /admin/socios) em vez de ícone SVG — texto pequeno em negrito perde nitidez
-   com só a cor escura (o ícone do microfone é vetor grosso, sempre nítido;
-   fonte a 12px não). Mesmo truque do .botao-mic: branco + contorno preto,
-   sempre com esse contraste não importa a cor de fundo. */
+   /admin/socios) em vez de ícone SVG. Experimento pedido pelo Robson em
+   04/09: texto escuro sólido (mesma cor dos ícones dos tiles, #0b1220) em
+   vez do branco+contorno preto de antes — comparar legibilidade nas 4 cores
+   de fundo antes de decidir qual fica valendo. */
 .icone-selo.rotulo {
-  color: #fff;
+  color: #0b1220;
   font-weight: 800;
-  -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.65);
-  text-shadow:
-    -1px -1px 0 rgba(0, 0, 0, 0.75),
-    1px -1px 0 rgba(0, 0, 0, 0.75),
-    -1px 1px 0 rgba(0, 0, 0, 0.75),
-    1px 1px 0 rgba(0, 0, 0, 0.75),
-    0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .icone-selo.cor-0 {
