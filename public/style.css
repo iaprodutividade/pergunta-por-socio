@@ -445,6 +445,75 @@ body {
     0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
+/* Variantes de cor do mesmo tile 64x64 (mesmo padrão AcaoTile do Mural
+   Financeiro) — uma cor por ação, ver claude-sessions-log 02/09/2026. */
+.icone-selo.violeta-grande {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #a78bfa, #a855f7);
+  color: #0b1220;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s, filter 0.15s;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 0 10px 1px rgba(167, 139, 250, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.35),
+    0 4px 10px rgba(0, 0, 0, 0.4);
+}
+.icone-selo.violeta-grande:hover { transform: translateY(-2px); filter: brightness(1.1); }
+.icone-selo.violeta-grande:active { transform: scale(0.95); filter: brightness(0.9); }
+.icone-selo.violeta-grande svg { width: 26px; height: 26px; }
+
+.icone-selo.ambar-grande {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fcd34d, #f97316);
+  color: #0b1220;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s, filter 0.15s;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 0 10px 1px rgba(251, 191, 36, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.35),
+    0 4px 10px rgba(0, 0, 0, 0.4);
+}
+.icone-selo.ambar-grande:hover { transform: translateY(-2px); filter: brightness(1.1); }
+.icone-selo.ambar-grande:active { transform: scale(0.95); filter: brightness(0.9); }
+.icone-selo.ambar-grande svg { width: 26px; height: 26px; }
+
+.icone-selo.azul-grande.copiado,
+.icone-selo.violeta-grande.encurtado,
+.icone-selo.ambar-grande.personalizado {
+  background: linear-gradient(180deg, #34d399, #10b981) !important;
+}
+.icone-selo.violeta-grande.falhou,
+.icone-selo.ambar-grande.falhou {
+  background: linear-gradient(180deg, #fb7185, #ef4444) !important;
+}
+
+.acao-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.acao-tile-rotulo {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: center;
+  transition: color 0.15s;
+}
+
+.acao-tile:hover .acao-tile-rotulo { color: var(--text-primary); }
+
 @keyframes pulso {
   0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.45); }
   70% { box-shadow: 0 0 0 20px rgba(244, 63, 94, 0); }
@@ -503,7 +572,6 @@ body {
 .botao-mic.gravando { background: linear-gradient(180deg, #fb7185, #ef4444); }
 .botao-mic.processando { background: linear-gradient(180deg, #fcd34d, #f97316); }
 .botao-mic.copiado { background: linear-gradient(180deg, #34d399, #10b981) !important; }
-.botao-mic.encurtar { background: linear-gradient(180deg, #a78bfa, #a855f7); }
 
 .card-resposta {
   background: var(--surface-1);

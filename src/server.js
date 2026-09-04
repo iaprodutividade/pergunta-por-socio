@@ -185,10 +185,26 @@ app.get('/admin/socios', async (req, res) => {
           <div class="card-empresa">
             <p class="nome-empresa" style="margin-bottom:10px">${s.pessoaNome}</p>
             <div style="display:flex;flex-wrap:wrap;margin-bottom:12px">${badges}</div>
-            <code id="link-${s.pessoaId}" style="display:block;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:11px;word-break:break-all;color:var(--text-secondary);margin-bottom:8px">${link}</code>
-            <div style="display:flex;align-items:center;gap:8px">
-              <button class="botao-mic" style="padding:8px 14px;flex-shrink:0" onclick="copiar('link-${s.pessoaId}', this)">Copiar</button>
-              <button class="botao-mic encurtar" style="padding:8px 14px;flex-shrink:0" onclick="encurtar('${s.pessoaId}', this)">Encurtar</button>
+            <code id="link-${s.pessoaId}" style="display:block;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:11px;word-break:break-all;color:var(--text-secondary);margin-bottom:12px">${link}</code>
+            <div style="display:flex;gap:18px">
+              <div class="acao-tile">
+                <button class="icone-selo azul-grande" onclick="copiar('link-${s.pessoaId}', this)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+                <span class="acao-tile-rotulo" id="rotulo-copiar-${s.pessoaId}">Copiar</span>
+              </div>
+              <div class="acao-tile">
+                <button class="icone-selo violeta-grande" onclick="encurtar('${s.pessoaId}', this)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7a5 5 0 1 1 0-10h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                </button>
+                <span class="acao-tile-rotulo" id="rotulo-encurtar-${s.pessoaId}">Encurtar</span>
+              </div>
+              <div class="acao-tile">
+                <button class="icone-selo ambar-grande" onclick="personalizar('${s.pessoaId}', this)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                </button>
+                <span class="acao-tile-rotulo" id="rotulo-personalizar-${s.pessoaId}">Personalizar</span>
+              </div>
             </div>
           </div>`;
       })
@@ -240,40 +256,64 @@ app.get('/admin/socios', async (req, res) => {
   <script>
     function copiar(id, btn) {
       const texto = document.getElementById(id).textContent;
-      navigator.clipboard.writeText(texto).then(() => {
-        const original = btn.textContent;
-        btn.textContent = 'Copiado!';
+      const pessoaId = id.replace('link-', '');
+      const rotulo = document.getElementById('rotulo-copiar-' + pessoaId);
+      navigator.clipboard.writeText(texto).then(function () {
+        const original = rotulo.textContent;
+        rotulo.textContent = 'Copiado!';
         btn.classList.add('copiado');
-        setTimeout(() => { btn.textContent = original; btn.classList.remove('copiado'); }, 1500);
+        setTimeout(function () { rotulo.textContent = original; btn.classList.remove('copiado'); }, 1500);
       });
     }
 
-    function encurtar(pessoaId, btn) {
-      const original = btn.textContent;
+    // Usada tanto pelo botão "Encurtar" (slug automático) quanto "Personalizar"
+    // (slug escolhido pelo Robson) — só muda o corpo enviado e o texto de feedback.
+    function chamarEncurtar(pessoaId, btn, rotuloId, customSlug) {
+      const rotulo = document.getElementById(rotuloId);
+      const original = rotulo.textContent;
+      const classeSucesso = customSlug ? 'personalizado' : 'encurtado';
+      const corpo = { pessoaId: pessoaId };
+      if (customSlug) corpo.customSlug = customSlug;
+
       btn.disabled = true;
-      btn.textContent = 'Encurtando...';
+      rotulo.textContent = customSlug ? 'Salvando...' : 'Encurtando...';
       fetch('/admin/encurtar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pessoaId: pessoaId }),
+        body: JSON.stringify(corpo),
       })
         .then(function (r) { return r.json(); })
         .then(function (dados) {
           btn.disabled = false;
           if (dados.erro) {
-            btn.textContent = 'Falhou';
-            setTimeout(function () { btn.textContent = original; }, 1500);
+            btn.classList.add('falhou');
+            rotulo.textContent = dados.erro;
+            setTimeout(function () { btn.classList.remove('falhou'); rotulo.textContent = original; }, 2400);
             return;
           }
           document.getElementById('link-' + pessoaId).textContent = dados.shortUrl;
-          btn.textContent = 'Encurtado!';
-          setTimeout(function () { btn.textContent = original; }, 1500);
+          btn.classList.add(classeSucesso);
+          rotulo.textContent = customSlug ? 'Salvo!' : 'Encurtado!';
+          setTimeout(function () { btn.classList.remove(classeSucesso); rotulo.textContent = original; }, 1800);
         })
         .catch(function () {
           btn.disabled = false;
-          btn.textContent = 'Falhou';
-          setTimeout(function () { btn.textContent = original; }, 1500);
+          btn.classList.add('falhou');
+          rotulo.textContent = 'Falhou';
+          setTimeout(function () { btn.classList.remove('falhou'); rotulo.textContent = original; }, 1800);
         });
+    }
+
+    function encurtar(pessoaId, btn) {
+      chamarEncurtar(pessoaId, btn, 'rotulo-encurtar-' + pessoaId, null);
+    }
+
+    function personalizar(pessoaId, btn) {
+      const digitado = window.prompt('Final do link (ex: leandro) — vira srty.com.br/<valor>:');
+      if (!digitado) return;
+      const slug = digitado.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+      if (!slug) return;
+      chamarEncurtar(pessoaId, btn, 'rotulo-personalizar-' + pessoaId, slug);
     }
 
     var botoesTema = document.querySelectorAll('.botao-tema');
@@ -303,15 +343,16 @@ app.get('/admin/socios', async (req, res) => {
 app.post('/admin/encurtar', async (req, res) => {
   try {
     const pessoaId = String(req.body?.pessoaId || '');
+    const customSlug = req.body?.customSlug ? String(req.body.customSlug) : undefined;
     const pessoaNome = await db.nomeDoSocio(pessoaId);
     if (!pessoaNome) return res.status(404).json({ erro: 'Sócio não encontrado.' });
 
     const base = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
     const link = `${base}/s/${token.signStavel({ pessoaId, pessoaNome })}`;
-    const shortUrl = await srty.encurtarLink(link);
+    const resultado = await srty.encurtarLink(link, customSlug);
 
-    if (shortUrl === link) return res.status(502).json({ erro: 'Não deu pra encurtar agora.' });
-    res.json({ shortUrl });
+    if (!resultado.ok) return res.status(502).json({ erro: resultado.erro });
+    res.json({ shortUrl: resultado.shortUrl });
   } catch (err) {
     console.error(err);
     res.status(500).json({ erro: 'Falha ao encurtar o link.' });

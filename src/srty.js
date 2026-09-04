@@ -2,22 +2,25 @@
 // nunca do navegador, pra não vazar a X-Api-Key no código-fonte da página.
 const SRTY_API_URL = 'https://srty.com.br/api/links';
 
-async function encurtarLink(longUrl) {
+async function encurtarLink(longUrl, customSlug) {
   const apiKey = process.env.SRTY_API_KEY;
-  if (!apiKey) return longUrl;
+  if (!apiKey) return { ok: false, erro: 'Encurtador não configurado.' };
 
   try {
+    const body = { longUrl };
+    if (customSlug) body.customSlug = customSlug;
+
     const resposta = await fetch(SRTY_API_URL, {
       method: 'POST',
       headers: { 'X-Api-Key': apiKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ longUrl }),
+      body: JSON.stringify(body),
     });
-    if (!resposta.ok) return longUrl;
+    const dados = await resposta.json().catch(() => ({}));
 
-    const dados = await resposta.json();
-    return dados.shortUrl || longUrl;
+    if (!resposta.ok) return { ok: false, erro: dados.erro || 'Não deu pra encurtar agora.' };
+    return { ok: true, shortUrl: dados.shortUrl };
   } catch {
-    return longUrl;
+    return { ok: false, erro: 'Não deu pra encurtar agora.' };
   }
 }
 
