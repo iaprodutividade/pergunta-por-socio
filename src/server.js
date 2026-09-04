@@ -186,21 +186,21 @@ app.get('/admin/socios', async (req, res) => {
             <p class="nome-empresa" style="margin-bottom:10px">${s.pessoaNome}</p>
             <div style="display:flex;flex-wrap:wrap;margin-bottom:12px">${badges}</div>
             <code id="link-${s.pessoaId}" style="display:block;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:11px;word-break:break-all;color:var(--text-secondary);margin-bottom:12px">${link}</code>
-            <div style="display:flex;gap:18px">
+            <div style="display:flex;gap:14px">
               <div class="acao-tile">
-                <button class="icone-selo azul-grande" onclick="copiar('link-${s.pessoaId}', this)">
+                <button class="icone-selo azul-grande pequeno" onclick="copiar('link-${s.pessoaId}', this)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 </button>
                 <span class="acao-tile-rotulo" id="rotulo-copiar-${s.pessoaId}">Copiar</span>
               </div>
               <div class="acao-tile">
-                <button class="icone-selo violeta-grande" onclick="encurtar('${s.pessoaId}', this)">
+                <button class="icone-selo violeta-grande pequeno" onclick="encurtar('${s.pessoaId}', this)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7a5 5 0 1 1 0-10h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
                 </button>
                 <span class="acao-tile-rotulo" id="rotulo-encurtar-${s.pessoaId}">Encurtar</span>
               </div>
               <div class="acao-tile">
-                <button class="icone-selo ambar-grande" onclick="personalizar('${s.pessoaId}', this)">
+                <button class="icone-selo ambar-grande pequeno" onclick="personalizar('${s.pessoaId}', this)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                 </button>
                 <span class="acao-tile-rotulo" id="rotulo-personalizar-${s.pessoaId}">Personalizar</span>

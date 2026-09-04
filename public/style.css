@@ -504,6 +504,16 @@ body {
   gap: 6px;
 }
 
+/* Versão reduzida do tile pra fileiras de ação secundárias (ex: Copiar/
+   Encurtar/Personalizar em /admin/socios) — mesmo visual, menos destaque
+   que o tile "grande" (64px) usado pro botão principal de gravar. */
+.icone-selo.pequeno {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 14px !important;
+}
+.icone-selo.pequeno svg { width: 18px !important; height: 18px !important; }
+
 .acao-tile-rotulo {
   font-size: 12px;
   font-weight: 500;
