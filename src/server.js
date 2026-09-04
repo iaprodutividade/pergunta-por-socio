@@ -8,6 +8,7 @@ const token = require('./token');
 const groq = require('./groq');
 const openai = require('./openai');
 const db = require('./db');
+const srty = require('./srty');
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
@@ -184,9 +185,10 @@ app.get('/admin/socios', async (req, res) => {
           <div class="card-empresa">
             <p class="nome-empresa" style="margin-bottom:10px">${s.pessoaNome}</p>
             <div style="display:flex;flex-wrap:wrap;margin-bottom:12px">${badges}</div>
+            <code id="link-${s.pessoaId}" style="display:block;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:11px;word-break:break-all;color:var(--text-secondary);margin-bottom:8px">${link}</code>
             <div style="display:flex;align-items:center;gap:8px">
-              <code id="link-${s.pessoaId}" style="flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:11px;word-break:break-all;color:var(--text-secondary)">${link}</code>
               <button class="botao-mic" style="padding:8px 14px;flex-shrink:0" onclick="copiar('link-${s.pessoaId}', this)">Copiar</button>
+              <button class="botao-mic encurtar" style="padding:8px 14px;flex-shrink:0" onclick="encurtar('${s.pessoaId}', this)">Encurtar</button>
             </div>
           </div>`;
       })
@@ -246,6 +248,34 @@ app.get('/admin/socios', async (req, res) => {
       });
     }
 
+    function encurtar(pessoaId, btn) {
+      const original = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Encurtando...';
+      fetch('/admin/encurtar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pessoaId: pessoaId }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (dados) {
+          btn.disabled = false;
+          if (dados.erro) {
+            btn.textContent = 'Falhou';
+            setTimeout(function () { btn.textContent = original; }, 1500);
+            return;
+          }
+          document.getElementById('link-' + pessoaId).textContent = dados.shortUrl;
+          btn.textContent = 'Encurtado!';
+          setTimeout(function () { btn.textContent = original; }, 1500);
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.textContent = 'Falhou';
+          setTimeout(function () { btn.textContent = original; }, 1500);
+        });
+    }
+
     var botoesTema = document.querySelectorAll('.botao-tema');
     function aplicarTema(tema) {
       if (tema === 'claro' || tema === 'intermediario') {
@@ -264,6 +294,27 @@ app.get('/admin/socios', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send('Falha ao carregar sócios.');
+  }
+});
+
+// Encurta o link de um sócio (mesma proteção do /admin/socios — basic auth no Caddy).
+// Recebe só o pessoaId e reconstrói o link no servidor, em vez de confiar numa URL
+// vinda do cliente, mesmo essa página já sendo de acesso restrito.
+app.post('/admin/encurtar', async (req, res) => {
+  try {
+    const pessoaId = String(req.body?.pessoaId || '');
+    const pessoaNome = await db.nomeDoSocio(pessoaId);
+    if (!pessoaNome) return res.status(404).json({ erro: 'Sócio não encontrado.' });
+
+    const base = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const link = `${base}/s/${token.signStavel({ pessoaId, pessoaNome })}`;
+    const shortUrl = await srty.encurtarLink(link);
+
+    if (shortUrl === link) return res.status(502).json({ erro: 'Não deu pra encurtar agora.' });
+    res.json({ shortUrl });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: 'Falha ao encurtar o link.' });
   }
 });
 

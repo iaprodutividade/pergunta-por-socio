@@ -503,6 +503,7 @@ body {
 .botao-mic.gravando { background: linear-gradient(180deg, #fb7185, #ef4444); }
 .botao-mic.processando { background: linear-gradient(180deg, #fcd34d, #f97316); }
 .botao-mic.copiado { background: linear-gradient(180deg, #34d399, #10b981) !important; }
+.botao-mic.encurtar { background: linear-gradient(180deg, #a78bfa, #a855f7); }
 
 .card-resposta {
   background: var(--surface-1);
