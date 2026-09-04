@@ -9,6 +9,7 @@ const groq = require('./groq');
 const openai = require('./openai');
 const db = require('./db');
 const srty = require('./srty');
+const atividade = require('./atividade');
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
@@ -40,7 +41,15 @@ function autenticar(req, res, next) {
 
 // Página do sócio: serve o HTML com a versão dos assets embutida (ver ASSET_VERSION
 // acima). O token fica só no client (localStorage), nunca em log de servidor.
+// Cada carregamento com token válido conta como um "clique" pro painel de atividade
+// (/admin/atividade) — registrado aqui, não no /api/me, pra contar mesmo se a IA falhar.
 app.get(['/', '/s/:token'], (req, res) => {
+  if (req.params.token) {
+    const payload = token.verify(req.params.token);
+    if (payload?.pessoaId) {
+      atividade.registrarClique({ pessoaId: payload.pessoaId, pessoaNome: payload.pessoaNome });
+    }
+  }
   res.type('html').send(INDEX_HTML);
 });
 
@@ -164,6 +173,70 @@ app.post('/api/tts', autenticar, async (req, res) => {
   }
 });
 
+// Casca HTML compartilhada pelas páginas administrativas (/admin/socios e /admin/atividade) —
+// mesmo header, toggle de tema e fontes. Extraída pra não duplicar isso a cada página nova.
+function paginaAdmin({ tituloPagina, tituloTopo, navExtra = '', corpo, scriptExtra = '' }) {
+  return `<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#050505" />
+<title>${tituloPagina}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/style.css?v=${ASSET_VERSION}" />
+<script>
+  try {
+    var t = localStorage.getItem('tema');
+    if (t === 'claro' || t === 'intermediario') document.documentElement.setAttribute('data-theme', t);
+  } catch (e) {}
+</script>
+</head>
+<body>
+  <div class="fundo-ambiente"><div class="mancha-ambar"></div><div class="grade-ambiente"></div></div>
+  <div class="tela">
+    <header class="topo">
+      <div class="avatar">A</div>
+      <div class="topo-textos">
+        <p class="rotulo-topo">Mural Financeiro</p>
+        <p class="titulo-topo">${tituloTopo}</p>
+      </div>
+      <div class="topo-acoes">
+        <button class="botao-tema" data-tema="claro" aria-label="Tema claro" title="Tema claro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+        <button class="botao-tema" data-tema="intermediario" aria-label="Tema intermediário" title="Tema intermediário">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <button class="botao-tema" data-tema="escuro" aria-label="Tema escuro" title="Tema escuro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+        </button>
+      </div>
+    </header>
+    ${navExtra}
+    ${corpo}
+  </div>
+  <script>
+    var botoesTema = document.querySelectorAll('.botao-tema');
+    function aplicarTema(tema) {
+      if (tema === 'claro' || tema === 'intermediario') {
+        document.documentElement.setAttribute('data-theme', tema);
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+      botoesTema.forEach(function (b) { b.classList.toggle('ativo', b.dataset.tema === tema); });
+      localStorage.setItem('tema', tema);
+    }
+    botoesTema.forEach(function (b) { b.addEventListener('click', function () { aplicarTema(b.dataset.tema); }); });
+    aplicarTema(localStorage.getItem('tema') || 'escuro');
+  </script>
+  ${scriptExtra}
+</body>
+</html>`;
+}
+
 // Página administrativa (só o Robson, protegida por basic auth no Caddy — ver README) com os
 // links de cada sócio prontos pra copiar e mandar por WhatsApp. Token estável (não muda a cada
 // carregamento) pra ele poder comparar com o que já mandou antes.
@@ -216,50 +289,17 @@ app.get('/admin/socios', async (req, res) => {
       })
       .join('');
 
-    res.send(`<!doctype html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="theme-color" content="#050505" />
-<title>Links dos sócios</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="/style.css?v=${ASSET_VERSION}" />
-<script>
-  try {
-    var t = localStorage.getItem('tema');
-    if (t === 'claro' || t === 'intermediario') document.documentElement.setAttribute('data-theme', t);
-  } catch (e) {}
-</script>
-</head>
-<body>
-  <div class="fundo-ambiente"><div class="mancha-ambar"></div><div class="grade-ambiente"></div></div>
-  <div class="tela">
-    <header class="topo">
-      <div class="avatar">A</div>
-      <div class="topo-textos">
-        <p class="rotulo-topo">Mural Financeiro</p>
-        <p class="titulo-topo">Links dos sócios</p>
-      </div>
-      <div class="topo-acoes">
-        <button class="botao-tema" data-tema="claro" aria-label="Tema claro" title="Tema claro">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-        </button>
-        <button class="botao-tema" data-tema="intermediario" aria-label="Tema intermediário" title="Tema intermediário">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>
-        </button>
-        <button class="botao-tema" data-tema="escuro" aria-label="Tema escuro" title="Tema escuro">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
-        </button>
-      </div>
-    </header>
+    const corpo = `
     <p class="secao-rotulo">Copiar e mandar por WhatsApp</p>
     <div class="grid-socios">${cards}</div>
-    <p class="status" style="margin-top:8px">Links estáveis, não expiram até 2030. Você não tem link próprio — já tem acesso direto ao Mural Financeiro.</p>
-  </div>
-  <script>
+    <p class="status" style="margin-top:8px">Links estáveis, não expiram até 2030. Você não tem link próprio — já tem acesso direto ao Mural Financeiro.</p>`;
+
+    const navExtra = `<a class="link-nav-admin" href="/admin/atividade">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
+      Ver área administrativa (envios e cliques)
+    </a>`;
+
+    const scriptExtra = `<script>
     function copiar(id, btn) {
       const texto = document.getElementById(id).textContent;
       const pessoaId = id.replace('link-', '');
@@ -269,6 +309,11 @@ app.get('/admin/socios', async (req, res) => {
         rotulo.textContent = 'Copiado!';
         btn.classList.add('copiado');
         setTimeout(function () { rotulo.textContent = original; btn.classList.remove('copiado'); }, 1500);
+        fetch('/admin/registrar-envio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pessoaId: pessoaId, link: texto }),
+        }).catch(function () {});
       });
     }
 
@@ -323,24 +368,33 @@ app.get('/admin/socios', async (req, res) => {
       chamarEncurtar(pessoaId, btn, 'rotulo-personalizar-' + pessoaId, slug);
     }
 
-    var botoesTema = document.querySelectorAll('.botao-tema');
-    function aplicarTema(tema) {
-      if (tema === 'claro' || tema === 'intermediario') {
-        document.documentElement.setAttribute('data-theme', tema);
-      } else {
-        document.documentElement.removeAttribute('data-theme');
-      }
-      botoesTema.forEach(function (b) { b.classList.toggle('ativo', b.dataset.tema === tema); });
-      localStorage.setItem('tema', tema);
-    }
-    botoesTema.forEach(function (b) { b.addEventListener('click', function () { aplicarTema(b.dataset.tema); }); });
-    aplicarTema(localStorage.getItem('tema') || 'escuro');
-  </script>
-</body>
-</html>`);
+  </script>`;
+
+    res.send(paginaAdmin({ tituloPagina: 'Links dos sócios', tituloTopo: 'Links dos sócios', navExtra, corpo, scriptExtra }));
   } catch (err) {
     console.error(err);
     res.status(500).send('Falha ao carregar sócios.');
+  }
+});
+
+// Registra que o Robson copiou o link de um sócio em /admin/socios (botão "Copiar" do
+// link original) — usado pelo painel /admin/atividade como "quando eu mandei". Encurtar/
+// Personalizar já registram sozinhos em /admin/encurtar, essa rota cobre só o "Copiar" puro,
+// que é 100% client-side (clipboard) e não passava pelo servidor até agora.
+app.post('/admin/registrar-envio', async (req, res) => {
+  try {
+    const pessoaId = String(req.body?.pessoaId || '');
+    const link = String(req.body?.link || '');
+    if (!pessoaId || !link) return res.status(400).json({ erro: 'Dados inválidos.' });
+
+    const pessoaNome = await db.nomeDoSocio(pessoaId);
+    if (!pessoaNome) return res.status(404).json({ erro: 'Sócio não encontrado.' });
+
+    atividade.registrarEnvio({ pessoaId, pessoaNome, link });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: 'Falha ao registrar envio.' });
   }
 });
 
@@ -359,10 +413,75 @@ app.post('/admin/encurtar', async (req, res) => {
     const resultado = await srty.encurtarLink(link, customSlug);
 
     if (!resultado.ok) return res.status(502).json({ erro: resultado.erro });
+    atividade.registrarEnvio({ pessoaId, pessoaNome, link: resultado.shortUrl });
     res.json({ shortUrl: resultado.shortUrl });
   } catch (err) {
     console.error(err);
     res.status(500).json({ erro: 'Falha ao encurtar o link.' });
+  }
+});
+
+// Área administrativa (spec v3 do README, escopo reduzido: envio + cliques — sessão/tempo
+// de navegação e histórico de perguntas ficam pra depois). Pra cada sócio: último link
+// copiado/encurtado e quando, total de cliques no link mágico e o último clique.
+app.get('/admin/atividade', async (req, res) => {
+  try {
+    const socios = await db.todosOsSocios();
+    const envios = new Map(atividade.ultimosEnviosPorPessoa().map((e) => [e.pessoa_id, e]));
+    const cliques = new Map(atividade.cliquesPorPessoa().map((c) => [c.pessoa_id, c]));
+
+    const formatador = new Intl.DateTimeFormat('pt-BR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+      timeZone: 'America/Sao_Paulo',
+    });
+    const fmt = (iso) => (iso ? formatador.format(new Date(iso)) : '—');
+
+    const linhas = socios
+      .map((s) => {
+        const envio = envios.get(s.pessoaId);
+        const clique = cliques.get(s.pessoaId);
+        return `
+          <tr>
+            <td>
+              <p class="nome-empresa" style="margin:0">${s.pessoaNome}</p>
+              <p style="margin:2px 0 0;font-size:11px;color:var(--text-muted)">${s.empresas.join(', ')}</p>
+            </td>
+            <td><code style="font-size:11px;word-break:break-all;color:var(--text-secondary)">${envio ? envio.link : '—'}</code></td>
+            <td>${envio ? fmt(envio.enviado_em) : 'Nunca copiado'}</td>
+            <td style="text-align:center">${clique ? clique.total : 0}</td>
+            <td>${clique ? fmt(clique.ultimo) : '—'}</td>
+          </tr>`;
+      })
+      .join('');
+
+    const corpo = `
+    <p class="secao-rotulo">Envio e cliques por sócio</p>
+    <div class="tabela-atividade-wrap">
+      <table class="tabela-atividade">
+        <thead>
+          <tr>
+            <th>Sócio</th>
+            <th>Link atual (copiado/encurtado por último)</th>
+            <th>Copiado/enviado em</th>
+            <th style="text-align:center">Cliques</th>
+            <th>Último clique</th>
+          </tr>
+        </thead>
+        <tbody>${linhas}</tbody>
+      </table>
+    </div>
+    <p class="status" style="margin-top:8px;max-width:none">"Copiado/enviado em" é registrado quando você usa Copiar, Encurtar ou Personalizar em /admin/socios — o app não sabe se a mensagem realmente saiu no WhatsApp. "Cliques" conta cada vez que o link mágico do sócio foi aberto.</p>`;
+
+    const navExtra = `<a class="link-nav-admin" href="/admin/socios">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Voltar pros links dos sócios
+    </a>`;
+
+    res.send(paginaAdmin({ tituloPagina: 'Atividade dos sócios', tituloTopo: 'Atividade dos sócios', navExtra, corpo }));
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Falha ao carregar atividade.');
   }
 });
 

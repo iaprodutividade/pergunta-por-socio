@@ -46,6 +46,27 @@ O Robson **não** tem link próprio — ele não aparece em `v_socio_empresas` p
 direto e completo ao Mural Financeiro; esse app existe só pra dar aos sócios uma forma simples de
 consultar sem abrir o Mural inteiro.
 
+Copiar/Encurtar/Personalizar já deixam o link resultante no clipboard automaticamente (pedido do
+Robson 04/09 — antes só o botão "Copiar" fazia isso, dar Ctrl+V depois de Encurtar não colava
+nada). Cada um desses três também tem um ícone colado no próprio link pra copiar de novo a
+qualquer momento.
+
+## Página administrativa — atividade (envio + cliques)
+
+`GET /admin/atividade` (mesma basic auth) — versão reduzida da spec v3 abaixo, pedida pelo Robson
+em 04/09: pra cada sócio, mostra o último link copiado/encurtado e quando, mais o total de
+cliques no link mágico (cada `GET /s/:token` válido) e o último clique.
+
+Guardado em SQLite local (`node:sqlite`, embutido no Node 24 — sem dependência nativa pra
+compilar no Alpine, ver `src/atividade.js`), já que a role do Postgres do Mural é só leitura. O
+arquivo fica em `./data/atividade.db`, **precisa estar montado como volume Docker** (ver seção de
+Deploy) — sem isso o histórico some a cada `docker rm` + `docker run` do deploy.
+
+"Copiado/enviado em" é registrado quando o Robson usa Copiar, Encurtar ou Personalizar em
+`/admin/socios` — o app não sabe se a mensagem realmente saiu no WhatsApp, só que o link foi
+preparado pra isso. Sessão/tempo de navegação e histórico de perguntas continuam pendentes (ver
+spec v3).
+
 ## Pendências conhecidas (v1)
 
 - **Saldo ainda não é calculado.** O desenho original (ver handoff em `claude-sessions-log`)
@@ -88,6 +109,11 @@ provavelmente SQLite local nesta app, no mesmo padrão do Comunicação Direta.
 **Não implementado ainda** — construir depois do v1 (lançamentos) estar rodando de verdade.
 
 ## Spec v3 — painel de analytics de acesso (pedido do Robson, 2026-09-01)
+
+**Parcialmente implementado em 04/09** — ver `/admin/atividade` acima (item "resumo de login por
+sócio: quando entrou, quantas vezes" cobre a contagem de cliques; "quanto tempo cada sócio
+navegou" e "o que cada sócio acessou/perguntou" continuam pendentes, itens 2 e a parte de
+histórico do item 1 abaixo).
 
 Robson quer uma área administrativa completa (não só a lista simples de `/admin/socios`) com:
 
@@ -144,10 +170,12 @@ Rodando na VPS Andrea, mesmo padrão do Comunicação Direta:
 - Testado ponta a ponta via `https://socios.plataformafacil.com.br` com link real do Leandro (voz
   real, confirmado pelo Robson) e via `/admin/socios` (basic auth confirmado bloqueando sem senha).
 
-Atualizar o código:
+Atualizar o código (o `-v` monta `/opt/pergunta-por-socio/data` como `/app/data` dentro do
+container — **obrigatório** a partir de 04/09, é onde fica o SQLite de `/admin/atividade`; sem
+ele o histórico de envio/cliques some a cada deploy):
 
 ```bash
-bash ~/.ssh/hermes_ssh_wrapper.sh "cd /opt/pergunta-por-socio && sudo git pull && sudo docker build -t pergunta-por-socio:latest . && sudo docker rm -f pergunta-por-socio && sudo docker run -d --name pergunta-por-socio --restart always --env-file /opt/pergunta-por-socio/.env -p 127.0.0.1:3200:3200 pergunta-por-socio:latest"
+bash ~/.ssh/hermes_ssh_wrapper.sh "mkdir -p /opt/pergunta-por-socio/data && cd /opt/pergunta-por-socio && sudo git pull && sudo docker build -t pergunta-por-socio:latest . && sudo docker rm -f pergunta-por-socio && sudo docker run -d --name pergunta-por-socio --restart always --env-file /opt/pergunta-por-socio/.env -v /opt/pergunta-por-socio/data:/app/data -p 127.0.0.1:3200:3200 pergunta-por-socio:latest"
 ```
 
 Gerar link de um sócio direto na VPS:

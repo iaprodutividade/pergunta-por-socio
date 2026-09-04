@@ -540,6 +540,60 @@ body {
 .botao-copia-inline.copiado .icone-copia { display: none; }
 .botao-copia-inline.copiado .icone-check { display: flex; }
 
+/* Link de navegação entre as páginas administrativas (/admin/socios <-> /admin/atividade). */
+.link-nav-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: -4px 0 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.link-nav-admin svg { width: 14px; height: 14px; flex-shrink: 0; }
+.link-nav-admin:hover { color: var(--text-primary); }
+
+/* Tabela do painel /admin/atividade (envios/cliques por sócio). */
+.tabela-atividade-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface-1);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  margin-bottom: 16px;
+}
+.tabela-atividade {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.tabela-atividade th,
+.tabela-atividade td {
+  padding: 12px 14px;
+  text-align: left;
+  white-space: nowrap;
+}
+.tabela-atividade th {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  white-space: normal;
+}
+.tabela-atividade td {
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+  white-space: normal;
+  vertical-align: top;
+}
+.tabela-atividade tbody tr:last-child td { border-bottom: none; }
+.tabela-atividade tbody tr:hover { background: var(--surface-2); }
+
 @keyframes pulso {
   0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.45); }
   70% { box-shadow: 0 0 0 20px rgba(244, 63, 94, 0); }
